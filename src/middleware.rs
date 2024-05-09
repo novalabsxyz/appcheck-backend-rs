@@ -1,26 +1,73 @@
-use super::AppCheck;
+use super::TokenVerifier;
 use axum::{
-    extract::{Request, State},
+    extract::Request,
     http::StatusCode,
-    middleware::Next,
-    response::IntoResponse,
+    response::{IntoResponse, Response},
     Json,
 };
+use futures_util::future::BoxFuture;
 use jwt_simple::{
     claims::{JWTClaims, NoCustomClaims},
     token::Token,
 };
+use std::task::{Context, Poll};
+use tower::{Layer, Service};
 
 const APP_CHECK_HEADER: &str = "X-Firebase-AppCheck";
 
-pub async fn token_auth<A>(
-    State(data): State<A>,
-    req: Request,
-    next: Next,
-) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)>
+#[derive(Clone)]
+struct AppCheckLayer {
+    verifier: TokenVerifier,
+}
+
+impl<S> Layer<S> for AppCheckLayer {
+    type Service = AppCheckService<S>;
+
+    fn layer(&self, inner: S) -> Self::Service {
+        AppCheckService {
+            inner,
+            verifier: self.verifier.clone(),
+        }
+    }
+}
+
+#[derive(Clone)]
+struct AppCheckService<S> {
+    inner: S,
+    verifier: TokenVerifier,
+}
+
+impl<S> Service<Request> for AppCheckService<S>
 where
-    A: AppCheck,
+    S: Service<Request, Response = Response> + Clone + Send + 'static,
+    S::Future: Send + 'static,
 {
+    type Response = S::Response;
+    type Error = S::Error;
+    type Future = BoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    fn poll_ready(&mut self, ctx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        self.inner.poll_ready(ctx)
+    }
+
+    fn call(&mut self, req: Request) -> Self::Future {
+        let verifier = self.verifier.clone();
+        let not_ready_inner = self.inner.clone();
+        let mut ready_inner = std::mem::replace(&mut self.inner, not_ready_inner);
+
+        Box::pin(async move {
+            match token_auth(verifier, &req) {
+                Ok(_) => ready_inner.call(req).await,
+                Err(err) => Ok(err.into_response()),
+            }
+        })
+    }
+}
+
+fn token_auth(
+    verifier: TokenVerifier,
+    req: &Request,
+) -> Result<(), (StatusCode, Json<serde_json::Value>)> {
     let token = req
         .headers()
         .get(APP_CHECK_HEADER)
@@ -41,13 +88,13 @@ where
     // Validates the token signature and that the expiry (+tolerance) is within the limit
     // automatically. Also incorporates validation of issuer, audiences (includes firebase project
     // number) and optional app ID subjects if configured in VerificationOpts
-    let claims: JWTClaims<NoCustomClaims> = data
-        .verify_token(key_id, token, data.verify_opts())
+    let claims: JWTClaims<NoCustomClaims> = verifier
+        .verify_token(key_id, token, verifier.verify_opts())
         .map_err(|_| error_response())?;
 
     // If the App Check implementation is configured with a Firebase app allow-list, verify the token
     // subject is among the allowed app IDs
-    if let Some(app_ids) = data.verify_app_ids() {
+    if let Some(app_ids) = verifier.verify_app_ids() {
         if !claims
             .subject
             .is_some_and(|subject| app_ids.contains(&subject))
@@ -56,7 +103,7 @@ where
         }
     }
 
-    Ok(next.run(req).await)
+    Ok(())
 }
 
 fn error_response() -> (StatusCode, Json<serde_json::Value>) {

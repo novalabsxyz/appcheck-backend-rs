@@ -1,4 +1,4 @@
-use super::{AppCheck, Error};
+use super::Error;
 use jwt_simple::{
     algorithms::{RS256PublicKey, RSAPublicKeyLike},
     claims::{JWTClaims, NoCustomClaims},
@@ -7,6 +7,7 @@ use jwt_simple::{
 use std::collections::HashMap;
 use tokio::sync::watch;
 
+#[derive(Clone)]
 pub struct TokenVerifier {
     jwks: watch::Receiver<HashMap<String, RS256PublicKey>>,
     verify_opts: VerificationOptions,
@@ -25,10 +26,8 @@ impl TokenVerifier {
             app_ids,
         }
     }
-}
 
-impl AppCheck for TokenVerifier {
-    fn verify_token(
+    pub fn verify_token(
         &self,
         key_id: &str,
         token: &str,
@@ -42,11 +41,11 @@ impl AppCheck for TokenVerifier {
             .map_err(|err| err.into())
     }
 
-    fn verify_opts(&self) -> VerificationOptions {
+    pub fn verify_opts(&self) -> VerificationOptions {
         self.verify_opts.clone()
     }
 
-    fn verify_app_ids(&self) -> Option<&Vec<String>> {
+    pub fn verify_app_ids(&self) -> Option<&Vec<String>> {
         self.app_ids.as_ref()
     }
 }
