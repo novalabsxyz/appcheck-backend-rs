@@ -16,8 +16,14 @@ use tower::{Layer, Service};
 const APP_CHECK_HEADER: &str = "X-Firebase-AppCheck";
 
 #[derive(Clone)]
-struct AppCheckLayer {
+pub struct AppCheckLayer {
     verifier: TokenVerifier,
+}
+
+impl AppCheckLayer {
+    pub fn new(verifier: TokenVerifier) -> Self {
+        Self { verifier }
+    }
 }
 
 impl<S> Layer<S> for AppCheckLayer {
@@ -32,7 +38,7 @@ impl<S> Layer<S> for AppCheckLayer {
 }
 
 #[derive(Clone)]
-struct AppCheckService<S> {
+pub struct AppCheckService<S> {
     inner: S,
     verifier: TokenVerifier,
 }
