@@ -5,8 +5,8 @@ use std::collections::HashSet;
 #[derive(Clone, Debug, Deserialize)]
 pub struct Settings {
     /// The URL to retrieve rotating jwks from Firebase
-    #[serde(default = "default_jwk_url", with = "http_serde::uri")]
-    pub url: http::Uri,
+    #[serde(default = "default_jwk_url")]
+    pub url: String,
     /// The amount of time to cache fetched keys in hours
     #[serde(default = "default_cache_duration")]
     pub duration: u64,
@@ -26,13 +26,13 @@ fn default_cache_duration() -> u64 {
     6
 }
 
-fn default_jwk_url() -> http::Uri {
-    http::Uri::from_static("https://firebaseappcheck.googleapis.com/v1/jwks")
+fn default_jwk_url() -> String {
+    "https://firebaseappcheck.googleapis.com/v1/jwks".to_string()
 }
 
 impl Settings {
-    pub fn duration(&self) -> Duration {
-        Duration::from_secs(60 * 60 * self.duration)
+    pub fn duration(&self) -> tokio::time::Duration {
+        tokio::time::Duration::from_secs(60 * 60 * self.duration)
     }
 
     pub fn max_validity(&self) -> Option<Duration> {
