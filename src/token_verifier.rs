@@ -4,21 +4,21 @@ use jwt_simple::{
     claims::{JWTClaims, NoCustomClaims},
     common::VerificationOptions,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use tokio::sync::watch;
 
 #[derive(Clone)]
 pub struct TokenVerifier {
     jwks: watch::Receiver<HashMap<String, RS256PublicKey>>,
     verify_opts: VerificationOptions,
-    app_ids: Option<Vec<String>>,
+    app_ids: Option<HashSet<String>>,
 }
 
 impl TokenVerifier {
     pub fn new(
         jwks: watch::Receiver<HashMap<String, RS256PublicKey>>,
         verify_opts: VerificationOptions,
-        app_ids: Option<Vec<String>>,
+        app_ids: Option<HashSet<String>>,
     ) -> Self {
         Self {
             jwks,
@@ -45,7 +45,7 @@ impl TokenVerifier {
         self.verify_opts.clone()
     }
 
-    pub fn verify_app_ids(&self) -> Option<&Vec<String>> {
+    pub fn verify_app_ids(&self) -> Option<&HashSet<String>> {
         self.app_ids.as_ref()
     }
 }

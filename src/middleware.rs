@@ -78,16 +78,28 @@ fn token_auth(
         .headers()
         .get(APP_CHECK_HEADER)
         .and_then(|header| header.to_str().ok())
-        .ok_or_else(error_response)?;
+        .ok_or_else(|| {
+            tracing::debug!("request missing app check token header");
+            error_response()
+        })?;
 
-    let metadata = Token::decode_metadata(token).map_err(|_| error_response())?;
+    let metadata = Token::decode_metadata(token).map_err(|_| {
+        tracing::debug!("token missing metadata");
+        error_response()
+    })?;
 
     // Checks token header `alg` and `typ` fields match the expected values
     if metadata.algorithm() != "RS256" || metadata.signature_type() != Some("JWT") {
+        tracing::debug!(
+            alg = metadata.algorithm(),
+            typ = metadata.signature_type(),
+            "invalid token metadata headers"
+        );
         return Err(error_response());
     }
 
     let Some(key_id) = metadata.key_id() else {
+        tracing::debug!("token missing kid metadata header");
         return Err(error_response());
     };
 
@@ -96,7 +108,10 @@ fn token_auth(
     // number) and optional app ID subjects if configured in VerificationOpts
     let claims: JWTClaims<NoCustomClaims> = verifier
         .verify_token(key_id, token, verifier.verify_opts())
-        .map_err(|_| error_response())?;
+        .map_err(|_| {
+            tracing::debug!(token, key_id, "invalid app check token");
+            error_response()
+        })?;
 
     // If the App Check implementation is configured with a Firebase app allow-list, verify the token
     // subject is among the allowed app IDs
@@ -105,6 +120,7 @@ fn token_auth(
             .subject
             .is_some_and(|subject| app_ids.contains(&subject))
         {
+            tracing::debug!("token sub claim missing or invalid");
             return Err(error_response());
         }
     }

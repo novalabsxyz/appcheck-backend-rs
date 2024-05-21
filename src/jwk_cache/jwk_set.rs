@@ -24,6 +24,7 @@ pub(super) async fn fetch_key_set(
         .filter(|key| key.alg == ALG && key.kty == KTY)
         .try_fold(HashMap::new(), |mut set, key| {
             let pub_key = RS256PublicKey::from_components(&key.n, &key.e)?;
+            tracing::info!(key_id = %key.kid, "adding public key to validation cache");
             set.insert(key.kid, pub_key);
             Ok(set)
         })
