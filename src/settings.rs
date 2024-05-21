@@ -13,7 +13,7 @@ pub struct Settings {
     /// Firebase project number
     pub project_num: u64,
     /// The list of allowed app IDs to gate authentication
-    pub app_ids: Option<Vec<String>>,
+    pub app_ids: Option<HashSet<String>>,
     /// Reject tokens created more than max_validity seconds ago
     pub max_validity_secs: Option<u64>,
     /// How much clock drift  in secs to tolerate when verifying token timestamps; default is 15 min
