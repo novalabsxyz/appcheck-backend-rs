@@ -83,10 +83,6 @@ fn token_auth(
             error_response()
         })?;
 
-    let headers = req.headers();
-    let header = headers.get(APP_CHECK_HEADER);
-    tracing::debug!(?headers, ?header, "DEBUGGING HEADERS");
-
     let metadata = Token::decode_metadata(token).map_err(|_| {
         tracing::debug!(token, "token missing metadata");
         error_response()
