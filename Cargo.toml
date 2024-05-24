@@ -3,9 +3,16 @@ name = "appcheck-backend"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "jwt-bearer"
+path = "src/main.rs"
+
 [dependencies]
 axum = ">= 0.7"
 base64 = ">= 0.22"
+bs58 = "0"
+clap = { version = "4", features = ["derive"] }
+coarsetime = "*"
 futures-util = ">= 0.3"
 http = "1"
 http-serde = "2"

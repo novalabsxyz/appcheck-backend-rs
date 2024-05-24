@@ -1,3 +1,4 @@
+pub mod bearer;
 pub mod jwk_cache;
 pub mod middleware;
 mod settings;
