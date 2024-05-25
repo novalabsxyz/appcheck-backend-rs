@@ -1,4 +1,4 @@
-use super::TokenVerifier;
+use super::{Bearer, TokenVerifier};
 use axum::{
     extract::Request,
     http::{header, StatusCode},
@@ -56,8 +56,10 @@ impl<S> AppCheckService<S> {
                         .map(|token| token.to_owned())
                 })
             {
-                if let Ok(claims) = bearer_verifier.verify(&token) {
-                    req.extensions_mut().insert(claims.custom);
+                if let Ok(Some(subject)) =
+                    bearer_verifier.verify(&token).map(|claims| claims.subject)
+                {
+                    req.extensions_mut().insert(Bearer::new(&subject));
                     return Ok(());
                 }
             }

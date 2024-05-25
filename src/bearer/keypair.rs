@@ -82,8 +82,6 @@ impl VerifyArgs {
                     "iss": claims.issuer,
                     "aud": audiences,
                     "sub": claims.subject,
-                    "client": claims.custom.client(),
-                    "internal": claims.custom.internal(),
                 }
             }))?;
         }

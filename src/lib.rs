@@ -6,7 +6,7 @@ pub mod token_verifier;
 
 pub use bearer::Bearer;
 pub use jwk_cache::JwkCache;
-pub use settings::Settings;
+pub use settings::{BearerSettings, Settings};
 pub use token_verifier::TokenVerifier;
 
 #[derive(Debug, thiserror::Error)]

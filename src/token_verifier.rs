@@ -1,5 +1,3 @@
-use crate::bearer::Bearer;
-
 use super::{settings::BearerSettings, Error};
 use jwt_simple::{
     algorithms::{Ed25519PublicKey, EdDSAPublicKeyLike, RS256PublicKey, RSAPublicKeyLike},
@@ -68,10 +66,10 @@ pub struct BearerVerifier {
 }
 
 impl BearerVerifier {
-    pub fn verify(&self, token: &str) -> Result<JWTClaims<Bearer>, Error> {
+    pub fn verify(&self, token: &str) -> Result<JWTClaims<NoCustomClaims>, Error> {
         match (
             self.authorized_bearers.contains(token),
-            self.pubkey.verify_token::<Bearer>(token, None),
+            self.pubkey.verify_token::<NoCustomClaims>(token, None),
         ) {
             (true, Ok(claims)) => Ok(claims),
             (false, _) => Err(Error::UnknownBearer),
