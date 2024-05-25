@@ -1,6 +1,8 @@
-use super::Error;
+use crate::bearer::Bearer;
+
+use super::{settings::BearerSettings, Error};
 use jwt_simple::{
-    algorithms::{RS256PublicKey, RSAPublicKeyLike},
+    algorithms::{Ed25519PublicKey, EdDSAPublicKeyLike, RS256PublicKey, RSAPublicKeyLike},
     claims::{JWTClaims, NoCustomClaims},
     common::VerificationOptions,
 };
@@ -12,6 +14,7 @@ pub struct TokenVerifier {
     jwks: watch::Receiver<HashMap<String, RS256PublicKey>>,
     verify_opts: VerificationOptions,
     app_ids: Option<HashSet<String>>,
+    pub bearer_verifier: Option<BearerVerifier>,
 }
 
 impl TokenVerifier {
@@ -19,12 +22,20 @@ impl TokenVerifier {
         jwks: watch::Receiver<HashMap<String, RS256PublicKey>>,
         verify_opts: VerificationOptions,
         app_ids: Option<HashSet<String>>,
-    ) -> Self {
-        Self {
+        bearer_settings: Option<BearerSettings>,
+    ) -> Result<Self, Error> {
+        let bearer_verifier: Option<BearerVerifier> = if let Some(settings) = bearer_settings {
+            Some(settings.try_into()?)
+        } else {
+            None
+        };
+
+        Ok(Self {
             jwks,
             verify_opts,
             app_ids,
-        }
+            bearer_verifier,
+        })
     }
 
     pub fn verify_token(
@@ -47,5 +58,38 @@ impl TokenVerifier {
 
     pub fn verify_app_ids(&self) -> Option<&HashSet<String>> {
         self.app_ids.as_ref()
+    }
+}
+
+#[derive(Clone)]
+pub struct BearerVerifier {
+    pubkey: Ed25519PublicKey,
+    authorized_bearers: HashSet<String>,
+}
+
+impl BearerVerifier {
+    pub fn verify(&self, token: &str) -> Result<JWTClaims<Bearer>, Error> {
+        match (
+            self.authorized_bearers.contains(token),
+            self.pubkey.verify_token::<Bearer>(token, None),
+        ) {
+            (true, Ok(claims)) => Ok(claims),
+            (false, _) => Err(Error::UnknownBearer),
+            (_, Err(err)) => Err(err.into()),
+        }
+    }
+}
+
+impl TryFrom<BearerSettings> for BearerVerifier {
+    type Error = Error;
+
+    fn try_from(value: BearerSettings) -> Result<Self, Self::Error> {
+        Ok(Self {
+            pubkey: bs58::decode(&value.pubkey)
+                .into_vec()
+                .map_err(|err| err.into())
+                .and_then(|bytes| Ed25519PublicKey::from_bytes(&bytes))?,
+            authorized_bearers: HashSet::from_iter(value.authorized_bearers),
+        })
     }
 }

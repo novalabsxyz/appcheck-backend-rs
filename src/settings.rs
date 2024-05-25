@@ -20,6 +20,16 @@ pub struct Settings {
     pub time_tolerance_secs: Option<u64>,
     /// Accept tokens created in the future
     pub accept_future: Option<bool>,
+    /// Bypass AppCheck with self-issued JWT bearer tokens
+    pub bearer_settings: Option<BearerSettings>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct BearerSettings {
+    /// Base58 encoded string of the Ed25519 Public Key verifier
+    pub pubkey: String,
+    /// Allow-list of token strings to accept
+    pub authorized_bearers: Vec<String>,
 }
 
 fn default_cache_duration() -> u64 {

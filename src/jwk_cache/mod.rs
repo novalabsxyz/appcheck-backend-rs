@@ -1,5 +1,5 @@
 use super::TokenVerifier;
-use crate::Error;
+use crate::{settings::BearerSettings, Error};
 use jwt_simple::{algorithms::RS256PublicKey, common::VerificationOptions};
 use std::collections::{HashMap, HashSet};
 use tokio::{
@@ -24,6 +24,7 @@ impl JwkCache {
         url: String,
         verify_opts: VerificationOptions,
         app_ids: Option<HashSet<String>>,
+        bearer_settings: Option<BearerSettings>,
     ) -> Result<(TokenVerifier, Self), Error> {
         let client = reqwest::Client::new();
         let jwks = jwk_set::fetch_key_set(&client, &url).await?;
@@ -34,7 +35,7 @@ impl JwkCache {
             jwks: sender,
             url,
         };
-        let verifier = TokenVerifier::new(receiver, verify_opts, app_ids);
+        let verifier = TokenVerifier::new(receiver, verify_opts, app_ids, bearer_settings)?;
         Ok((verifier, cache))
     }
 
