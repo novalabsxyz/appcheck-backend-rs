@@ -1,4 +1,4 @@
-use super::Error;
+use super::{bearer::BearerVerifier, settings::BearerSettings, Error};
 use jwt_simple::{
     algorithms::{RS256PublicKey, RSAPublicKeyLike},
     claims::{JWTClaims, NoCustomClaims},
@@ -12,6 +12,7 @@ pub struct TokenVerifier {
     jwks: watch::Receiver<HashMap<String, RS256PublicKey>>,
     verify_opts: VerificationOptions,
     app_ids: Option<HashSet<String>>,
+    pub bearer_verifier: Option<BearerVerifier>,
 }
 
 impl TokenVerifier {
@@ -19,12 +20,20 @@ impl TokenVerifier {
         jwks: watch::Receiver<HashMap<String, RS256PublicKey>>,
         verify_opts: VerificationOptions,
         app_ids: Option<HashSet<String>>,
-    ) -> Self {
-        Self {
+        bearer_settings: Option<BearerSettings>,
+    ) -> Result<Self, Error> {
+        let bearer_verifier: Option<BearerVerifier> = if let Some(settings) = bearer_settings {
+            Some(settings.try_into()?)
+        } else {
+            None
+        };
+
+        Ok(Self {
             jwks,
             verify_opts,
             app_ids,
-        }
+            bearer_verifier,
+        })
     }
 
     pub fn verify_token(
