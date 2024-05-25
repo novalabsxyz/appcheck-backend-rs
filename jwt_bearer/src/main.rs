@@ -1,4 +1,4 @@
-use appcheck_backend::bearer::{Error, KeypairArgs, PubkeyArgs, TokenArgs, VerifyArgs};
+use jwt_bearer::{Error, KeypairArgs, PubkeyArgs, TokenArgs, VerifyArgs};
 use clap::Parser;
 
 #[derive(Debug, clap::Parser)]

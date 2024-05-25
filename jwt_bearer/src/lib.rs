@@ -2,7 +2,7 @@ mod keypair;
 mod token;
 
 pub use keypair::{KeypairArgs, PubkeyArgs, VerifyArgs};
-pub use token::{Bearer, TokenArgs};
+pub use token::TokenArgs;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

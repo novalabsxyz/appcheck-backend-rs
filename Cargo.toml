@@ -2,17 +2,19 @@
 name = "appcheck-backend"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
 
-[[bin]]
-name = "jwt-bearer"
-path = "src/main.rs"
+[lib]
+name = "appcheck_backend"
+path = "src/lib.rs"
 
-[dependencies]
+[workspace]
+members = ["jwt_bearer"]
+
+[workspace.dependencies]
 axum = ">= 0.7"
 base64 = ">= 0.22"
 bs58 = "0"
-clap = { version = "4", features = ["derive"] }
-coarsetime = "*"
 futures-util = ">= 0.3"
 http = "1"
 http-serde = "2"
@@ -25,3 +27,20 @@ tower = ">= 0.4"
 tracing = ">= 0.1"
 triggered = ">= 0.1"
 tokio = { version = "1", features = ["rt-multi-thread", "signal"] }
+
+[dependencies]
+axum = { workspace = true }
+base64 = { workspace = true }
+bs58 = { workspace = true }
+futures-util = { workspace = true }
+http = { workspace = true }
+http-serde = { workspace = true }
+jwt-simple = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
+triggered = { workspace = true }
+tokio = { workspace = true }

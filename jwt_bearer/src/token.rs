@@ -4,7 +4,6 @@ use jwt_simple::{
     claims::{Claims, JWTClaims, NoCustomClaims},
     prelude::Duration,
 };
-use serde::{Deserialize, Serialize};
 use std::{fs::read, path::PathBuf};
 
 #[derive(Clone, Debug, clap::Args)]
@@ -12,7 +11,7 @@ pub struct TokenArgs {
     /// Path to the keypair to sign the token
     #[arg(long, short)]
     keypair: PathBuf,
-    /// Optional subject identifier
+    /// Subject identifier; the authorized user or app
     #[arg(long, short)]
     sub: String,
     /// Optional lifetime for the token in minutes
@@ -52,23 +51,6 @@ impl TokenArgs {
         }))?;
 
         Ok(())
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Bearer {
-    subject: String,
-}
-
-impl Bearer {
-    pub fn new(sub: &str) -> Self {
-        Self {
-            subject: sub.to_owned(),
-        }
-    }
-
-    pub fn sub(&self) -> &str {
-        &self.subject
     }
 }
 

@@ -1,4 +1,4 @@
-use super::{print_json, Bearer, Error};
+use appcheck_backend::Bearer;
 use jwt_simple::{
     algorithms::{Ed25519KeyPair, Ed25519PublicKey, EdDSAPublicKeyLike},
     claims::Audiences,
@@ -8,6 +8,7 @@ use std::{
     io::Write,
     path::PathBuf,
 };
+use super::{print_json, Error};
 
 #[derive(Clone, Debug, clap::Args)]
 pub struct KeypairArgs {
