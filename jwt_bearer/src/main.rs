@@ -1,5 +1,5 @@
-use jwt_bearer::{Error, KeypairArgs, PubkeyArgs, TokenArgs, VerifyArgs};
 use clap::Parser;
+use jwt_bearer::{Error, KeypairArgs, PubkeyArgs, TokenArgs, VerifyArgs};
 
 #[derive(Debug, clap::Parser)]
 #[clap(version = env!("CARGO_PKG_VERSION"))]

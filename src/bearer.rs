@@ -1,10 +1,10 @@
+use super::{BearerSettings, Error};
 use jwt_simple::{
     algorithms::{Ed25519PublicKey, EdDSAPublicKeyLike},
-    claims::{JWTClaims, NoCustomClaims}
+    claims::{JWTClaims, NoCustomClaims},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use super::{BearerSettings, Error};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Bearer {
@@ -51,7 +51,7 @@ impl TryFrom<BearerSettings> for BearerVerifier {
                 .into_vec()
                 .map_err(|err| err.into())
                 .and_then(|bytes| Ed25519PublicKey::from_bytes(&bytes))?,
-            authorized_bearers: HashSet::from_iter(value.authorized_bearers),
+            authorized_bearers: HashSet::from_iter(value.allowlist),
         })
     }
 }
