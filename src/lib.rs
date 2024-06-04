@@ -8,6 +8,8 @@ pub use jwk_cache::JwkCache;
 pub use settings::{BearerSettings, Settings};
 pub use token_verifier::TokenVerifier;
 
+pub use jwt_simple::claims::JWTClaims;
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("token failed validation {0}")]
