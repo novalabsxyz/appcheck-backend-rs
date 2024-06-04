@@ -3,25 +3,7 @@ use jwt_simple::{
     algorithms::{Ed25519PublicKey, EdDSAPublicKeyLike},
     claims::{JWTClaims, NoCustomClaims},
 };
-use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Bearer {
-    subject: String,
-}
-
-impl Bearer {
-    pub fn new(sub: &str) -> Self {
-        Self {
-            subject: sub.to_owned(),
-        }
-    }
-
-    pub fn sub(&self) -> &str {
-        &self.subject
-    }
-}
 
 #[derive(Clone)]
 pub struct BearerVerifier {

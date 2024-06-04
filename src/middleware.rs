@@ -1,4 +1,4 @@
-use super::{Bearer, TokenVerifier};
+use super::TokenVerifier;
 use axum::{
     extract::Request,
     http::{header, StatusCode},
@@ -56,10 +56,8 @@ impl<S> AppCheckService<S> {
                         .map(|token| token.to_owned())
                 })
             {
-                if let Ok(Some(subject)) =
-                    bearer_verifier.verify(&token).map(|claims| claims.subject)
-                {
-                    req.extensions_mut().insert(Bearer::new(&subject));
+                if let Ok(claims) = bearer_verifier.verify(&token) {
+                    req.extensions_mut().insert(claims);
                     return Ok(());
                 }
             }
@@ -110,13 +108,15 @@ impl<S> AppCheckService<S> {
         if let Some(app_ids) = self.verifier.verify_app_ids() {
             if !claims
                 .subject
-                .is_some_and(|subject| app_ids.contains(&subject))
+                .as_ref()
+                .is_some_and(|subject| app_ids.contains(subject.as_str()))
             {
                 tracing::debug!("token sub claim missing or invalid");
                 return Err(error_response());
             }
         }
 
+        req.extensions_mut().insert(claims);
         Ok(())
     }
 }

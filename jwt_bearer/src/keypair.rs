@@ -1,8 +1,7 @@
 use super::{print_json, Error};
-use appcheck_backend::Bearer;
 use jwt_simple::{
     algorithms::{Ed25519KeyPair, Ed25519PublicKey, EdDSAPublicKeyLike},
-    claims::Audiences,
+    claims::{Audiences, NoCustomClaims},
 };
 use std::{
     fs::{read, File},
@@ -72,7 +71,7 @@ impl VerifyArgs {
             .map_err(|err| err.into())
             .and_then(|bytes| Ed25519PublicKey::from_bytes(&bytes))?;
 
-        if let Ok(claims) = pubkey.verify_token::<Bearer>(&self.token, None) {
+        if let Ok(claims) = pubkey.verify_token::<NoCustomClaims>(&self.token, None) {
             let audiences = claims.audiences.map(|audiences| match audiences {
                 Audiences::AsSet(aud_set) => aud_set,
                 Audiences::AsString(aud) => std::collections::HashSet::from([aud]),
