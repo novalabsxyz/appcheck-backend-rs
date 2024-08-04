@@ -57,6 +57,8 @@ impl<S> AppCheckService<S> {
                 })
             {
                 if let Ok(claims) = bearer_verifier.verify(&token) {
+                    let sub = claims.subject.clone().unwrap_or("unknown".to_owned());
+                    metrics::counter!("bearer-request-authorized", "subject" => sub).increment(1);
                     req.extensions_mut().insert(claims);
                     return Ok(());
                 }
@@ -116,6 +118,7 @@ impl<S> AppCheckService<S> {
             }
         }
 
+        metrics::counter!("appcheck-request-authorized").increment(1);
         req.extensions_mut().insert(claims);
         Ok(())
     }

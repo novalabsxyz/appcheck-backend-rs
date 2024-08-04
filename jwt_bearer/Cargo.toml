@@ -9,11 +9,11 @@ name = "jwt-bearer"
 path = "src/main.rs"
 
 [dependencies]
-appcheck-backend = { path = "../" }
-bs58 = { workspace = true }
+appcheck-backend.path = "../"
+bs58.workspace = true
 clap = { version = "4", features = ["derive"]}
 coarsetime = "*"
-jwt-simple = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-thiserror = { workspace = true }
+jwt-simple.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
