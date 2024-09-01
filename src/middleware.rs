@@ -70,17 +70,23 @@ impl<S> AppCheckService<S> {
             .get(APP_CHECK_HEADER)
             .and_then(|header| header.to_str().ok())
             .ok_or_else(|| {
+                metrics::counter!("appcheck-request-rejected", "reason" => "missing-token")
+                    .increment(1);
                 tracing::debug!("request missing app check token header");
                 error_response()
             })?;
 
         let metadata = Token::decode_metadata(token).map_err(|_| {
+            metrics::counter!("appcheck-request-rejected", "reason" => "missing-metadata")
+                .increment(1);
             tracing::debug!(token, "token missing metadata");
             error_response()
         })?;
 
         // Checks token header `alg` and `typ` fields match the expected values
         if metadata.algorithm() != "RS256" || metadata.signature_type() != Some("JWT") {
+            metrics::counter!("appcheck-request-rejected", "reason" => "invalid-algo-sig")
+                .increment(1);
             tracing::debug!(
                 alg = metadata.algorithm(),
                 typ = metadata.signature_type(),
@@ -90,6 +96,7 @@ impl<S> AppCheckService<S> {
         }
 
         let Some(key_id) = metadata.key_id() else {
+            metrics::counter!("appcheck-request-rejected", "reason" => "missing-kid").increment(1);
             tracing::debug!("token missing kid metadata header");
             return Err(error_response());
         };
@@ -101,6 +108,8 @@ impl<S> AppCheckService<S> {
             .verifier
             .verify_token(key_id, token, self.verifier.verify_opts())
             .map_err(|_| {
+                metrics::counter!("appcheck-request-rejected", "reason" => "invalid-token")
+                    .increment(1);
                 tracing::debug!(token, key_id, "invalid app check token");
                 error_response()
             })?;
@@ -113,6 +122,8 @@ impl<S> AppCheckService<S> {
                 .as_ref()
                 .is_some_and(|subject| app_ids.contains(subject.as_str()))
             {
+                metrics::counter!("appcheck-request-rejected", "reason" => "invalid-app-id")
+                    .increment(1);
                 tracing::debug!("token sub claim missing or invalid");
                 return Err(error_response());
             }
