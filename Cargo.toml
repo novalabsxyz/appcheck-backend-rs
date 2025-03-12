@@ -12,7 +12,7 @@ path = "src/lib.rs"
 members = ["jwt_bearer"]
 
 [workspace.dependencies]
-axum = ">= 0.7"
+axum = ">= 0.7, < 8"
 base64 = ">= 0.22"
 bs58 = "0"
 futures-util = ">= 0.3"
@@ -20,7 +20,11 @@ http = "1"
 http-serde = "2"
 jwt-simple = ">= 0.10"
 metrics = "0"
-reqwest = { version = ">= 0.11", default-features=false, features = ["gzip", "json", "rustls-tls"] }
+reqwest = { version = ">= 0.11", default-features = false, features = [
+  "gzip",
+  "json",
+  "rustls-tls",
+] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1"
