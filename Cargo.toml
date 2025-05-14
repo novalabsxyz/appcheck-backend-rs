@@ -12,7 +12,7 @@ path = "src/lib.rs"
 members = ["jwt_bearer"]
 
 [workspace.dependencies]
-axum = ">= 0.7, < 0.8"
+axum = ">= 0.7"
 base64 = ">= 0.22"
 bs58 = "0"
 futures-util = ">= 0.3"
