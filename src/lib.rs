@@ -8,7 +8,7 @@ pub use jwk_cache::JwkCache;
 pub use settings::{BearerSettings, Settings};
 pub use token_verifier::TokenVerifier;
 
-pub use jwt_simple::claims;
+pub use jwt_simple::prelude as jwt;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
